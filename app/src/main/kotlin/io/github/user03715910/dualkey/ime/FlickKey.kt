@@ -20,7 +20,9 @@ class FlickKey(context: Context, private val values: List<String>, private val t
     private val longPressValues: List<String>? = null,
     private val longPressInput: ((String) -> Unit)? = null,
     private val longPressDurationMs: Int = 300,
-    private val showFlickHints: Boolean = true) : AppCompatTextView(context) {
+    private val showFlickHints: Boolean = true,
+    private val repeatOnLongPress: Boolean = false,
+    private val repeatIntervalMs: Long = 65L) : AppCompatTextView(context) {
     private var downX = 0f
     private var downY = 0f
     private var direction = 0
@@ -35,8 +37,22 @@ class FlickKey(context: Context, private val values: List<String>, private val t
         textSize = 9f * resources.displayMetrics.scaledDensity
         typeface = android.graphics.Typeface.DEFAULT
     }
+    private var repeating = false
+    private val repeatAction = object : Runnable {
+        override fun run() {
+            if (activePointer < 0 || !repeating) return
+            values.firstOrNull()?.takeIf { it.isNotEmpty() }?.let(input)
+            postDelayed(this, repeatIntervalMs)
+        }
+    }
     private val normalLongPress = Runnable {
-        if (activePointer >= 0 && direction == 0 && performLongClick()) finishGesture()
+        if (activePointer >= 0 && direction == 0) {
+            if (repeatOnLongPress) {
+                repeating = true
+                values.firstOrNull()?.takeIf { it.isNotEmpty() }?.let(input)
+                postDelayed(repeatAction, repeatIntervalMs)
+            } else if (performLongClick()) finishGesture()
+        }
     }
     private val symbolLongPress = Runnable {
         if (activePointer >= 0 && direction == 0) {
@@ -92,7 +108,7 @@ class FlickKey(context: Context, private val values: List<String>, private val t
                 parent.requestDisallowInterceptTouchEvent(true)
                 if (longPressValues != null) postDelayed(symbolLongPress, longPressDurationMs.toLong())
                 else {
-                    if (isLongClickable) postDelayed(normalLongPress, ViewConfiguration.getLongPressTimeout().toLong())
+                    if (repeatOnLongPress || isLongClickable) postDelayed(normalLongPress, ViewConfiguration.getLongPressTimeout().toLong())
                     if (previewEnabled) showPreview(values)
                 }
                 updatePreview()
@@ -102,6 +118,7 @@ class FlickKey(context: Context, private val values: List<String>, private val t
                 if (index < 0) return true
                 val x=event.getX(index); val y=event.getY(index)
                 if (!symbolMode && maxOf(abs(x-downX),abs(y-downY))>touchSlop) {
+                    if (repeating) { repeating=false; removeCallbacks(repeatAction) }
                     removeCallbacks(symbolLongPress)
                     if (isLongClickable) removeCallbacks(normalLongPress)
                 }
@@ -111,11 +128,13 @@ class FlickKey(context: Context, private val values: List<String>, private val t
             MotionEvent.ACTION_UP -> {
                 if (activePointer<0) return true
                 val wasSymbolMode = symbolMode
+                val wasRepeating = repeating
+                repeating = false
                 val releasedDirection = if (wasSymbolMode) symbolDirectionAt(event.x,event.y) else directionAt(event.x,event.y)
                 val output = if (wasSymbolMode) longPressValues?.getOrNull(releasedDirection) else values.getOrNull(releasedDirection)
                 finishGesture()
                 performClick()
-                output?.takeIf { it.isNotEmpty() }?.let { value ->
+                if (!wasRepeating) output?.takeIf { it.isNotEmpty() }?.let { value ->
                     if (wasSymbolMode) (longPressInput ?: input).invoke(value) else input(value)
                 }
                 direction = 0
@@ -152,7 +171,8 @@ class FlickKey(context: Context, private val values: List<String>, private val t
         }
     }
     private fun finishGesture() {
-        removeCallbacks(normalLongPress); removeCallbacks(symbolLongPress)
+        removeCallbacks(normalLongPress); removeCallbacks(symbolLongPress); removeCallbacks(repeatAction)
+        repeating=false
         popup?.dismiss(); popup=null; preview=null
         isPressed=false; direction=0; activePointer=-1; symbolMode=false
         invalidate()
