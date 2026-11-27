@@ -290,7 +290,7 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
                 if (index==1) {
                     addView(FlickKey(context,listOf("cursor_right","cursor_left_one","cursor_up_one","cursor_end","cursor_down_one"),
                         dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"▶",right[index].third,showFlickHints=false,repeatOnLongPress=true).also(::decorate))
-                } else addView(if (index==0) FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate) else button(right[index].first,right[index].second,function=true,description=right[index].third))
+                } else addView(if (index==0) FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除",showFlickHints=false,repeatOnLongPress=true).also(::decorate) else button(right[index].first,right[index].second,function=true,description=right[index].third))
             }) }
             keys.addView(LinearLayout(context).apply {
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
