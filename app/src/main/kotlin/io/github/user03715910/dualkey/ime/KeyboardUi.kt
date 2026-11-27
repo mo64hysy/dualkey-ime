@@ -208,7 +208,7 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
         fun row(items: List<Pair<String,String>>) { keys.addView(LinearLayout(context).apply { orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false; items.forEach { addView(button(it.first,it.second)) } }) }
         if (symbolPage!=null) {
             buildSymbolKeys(symbolPage)
-        } else if ((english && !settings.englishFlick) || (!english && settings.japaneseQwerty)) {
+        } else if ((english && (!settings.englishFlick || !settings.englishFlickEnabled)) || (!english && settings.japaneseQwerty)) {
             listOf("qwertyuiop","asdfghjkl").forEach { line -> row(line.map { val s=if (shift>0) it.uppercase() else it.toString(); s to s }) }
             val label=when (shift) { 2 -> "⇪"; 1 -> "⬆"; else -> "⇧" }
             row(listOf(label to "shift")+"zxcvbnm".map { val s=if (shift>0) it.uppercase() else it.toString(); s to s }+("⌫" to "delete"))
@@ -218,31 +218,24 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
             fun controls(vararg cells: View) {
                 keys.addView(LinearLayout(context).apply { isBaselineAligned=false; cells.forEach { addView(it) } })
             }
-            val upperSymbols = "1234567890"
-            val topLeftSymbols = "☆♪→○×÷<>^|"
-            val middleSymbols = "@#¥\$%&_-+"
-            val bottomSymbols = "\"*'/!?~"
-            val middleLeftSymbols = "   ()[]\\/"
-            fun letterKey(letter: Char, left: String = "", upper: String): View {
+            fun letterKey(letter: Char): View {
                 val lower = letter.toString()
-                val output = listOf(if (shift > 0) lower.uppercase() else lower, left, upper, "", lower.uppercase())
+                val mapped = EnglishFlickMap.forKey(letter, settings.englishFlickCustomEnabled, settings.englishFlickCustomMap)
+                val output = listOf(if (shift > 0) lower.uppercase() else lower, mapped[1], mapped[2], mapped[3], lower.uppercase())
                 val visible = if (shift > 0) lower.uppercase() else lower
                 return FlickKey(context, output, dp(settings.flickDp).toFloat(), feedback, callback,
                     !sensitive, visible, "英字 $lower").also(::decorate)
             }
-            fun letterRow(chars: String, upper: String, left: String = "") {
-                controls(*chars.mapIndexed { index, c ->
-                    letterKey(c, left.getOrNull(index)?.toString() ?: "", upper[index].toString())
-                }.toTypedArray())
+            fun letterRow(chars: String) {
+                controls(*chars.map { c -> letterKey(c) }.toTypedArray())
             }
-            letterRow("qwertyuiop", upperSymbols, topLeftSymbols)
-            letterRow("asdfghjkl", middleSymbols, middleLeftSymbols)
+            letterRow("qwertyuiop")
+            letterRow("asdfghjkl")
             val shiftKey=button(when (shift) { 2 -> "A/A ⇪"; 1 -> "A/a"; else -> "a/A" },"shift",function=true).apply {
                 contentDescription=when (shift) { 2 -> "Shift：大文字固定"; 1 -> "Shift：次の1文字を大文字"; else -> "Shift：小文字" }
             }
-            controls(shiftKey, *"zxcvbnm".mapIndexed { index, c ->
-                letterKey(c, "", bottomSymbols[index].toString())
-            }.toTypedArray(), button("⌫","delete",function=true,description="削除"))
+            controls(shiftKey, *"zxcvbnm".map { c -> letterKey(c) }.toTypedArray(),
+                FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate))
             controls(button("日本語","mode",function=true),
                 button("記号","symbols",function=true,description="記号入力"),
                 button("空白","space",function=true),
@@ -256,18 +249,27 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
             val right=listOf(Triple("⌫","delete","削除"),Triple("▶","cursor_right","カーソルを右へ"),Triple("空白","space","空白・変換"))
             groups.forEachIndexed { index,group -> keys.addView(LinearLayout(context).apply {
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
-                addView(button(left[index].first,left[index].second,function=true,description=left[index].third).apply {
+                if (index==1) {
+                    addView(FlickKey(context,listOf("cursor_left","cursor_left_one","cursor_up_one","cursor_start","cursor_down_one"),
+                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"◀",left[index].third).also(::decorate))
+                } else addView(button(left[index].first,left[index].second,function=true,description=left[index].third).apply {
                     if (index==0) isEnabled=!sensitive
                 })
                 group.forEach { values -> addView(FlickKey(context,values,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,longPressValues=LongPressSymbolMap.forKey(values.first()),longPressInput=symbolInput).also(::decorate)) }
-                addView(button(right[index].first,right[index].second,function=true,description=right[index].third))
+                if (index==1) {
+                    addView(FlickKey(context,listOf("cursor_right","cursor_left_one","cursor_up_one","cursor_end","cursor_down_one"),
+                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"▶",right[index].third).also(::decorate))
+                } else addView(button(right[index].first,right[index].second,function=true,description=right[index].third))
             }) }
             keys.addView(LinearLayout(context).apply {
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
                 addView(button("abc", "mode",function=true,description="英語に切り替え"))
                 addView(button("小゛゜", "modify",function=true,description="濁点・半濁点・小文字"))
-                addView(FlickKey(context,listOf("わ","を","ん","ー","〜"),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,longPressValues=LongPressSymbolMap.forKey("わ"),longPressInput=symbolInput).also(::decorate))
+                addView(FlickKey(context,listOf("わ","を","ん","ー","〜"),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,
+                    longPressValues=if (settings.longPressFlickEnabled) LongPressSymbolMap.forKey("わ",settings.longPressCustomEnabled,settings.longPressCustomMap) else null,
+                    longPressInput=symbolInput,longPressDurationMs=settings.longPressDuration).also(::decorate))
                 addView(FlickKey(context,listOf("、","。","？","！","・"),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive).also(::decorate))
+                addView(FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate))
                 addView(button("↵", "enter",function=true,description="確定・改行"))
             })
         }
