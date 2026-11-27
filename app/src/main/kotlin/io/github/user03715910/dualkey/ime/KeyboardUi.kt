@@ -230,7 +230,18 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
             keys.addView(LinearLayout(context).apply {
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
                 addView(button(label,"shift",function=true))
-                "zxcvbnm".forEach { ch -> val value=if (shift>0) ch.uppercase() else ch.toString(); addView(button(value,value)) }
+                "zxcvbnm".forEach { ch ->
+                    val lower=ch.toString()
+                    if (english && settings.englishFlickEnabled) {
+                        val mapped=EnglishFlickMap.forKey(ch,settings.englishFlickCustomEnabled,settings.englishFlickCustomMap)
+                        val output=listOf(if (shift>0) lower.uppercase() else lower,mapped[1],mapped[2],mapped[3],mapped[4])
+                        addView(FlickKey(context,output,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,
+                            if (shift>0) lower.uppercase() else lower,"英字 $lower").also(::decorate))
+                    } else {
+                        val value=if (shift>0) lower.uppercase() else lower
+                        addView(button(value,value))
+                    }
+                }
                 addView(FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除",showFlickHints=false).also(::decorate))
             })
             row(listOf((if (english) "日本語" else "abc") to "mode", "記号" to "symbols", (if (english) "," else "カナ/英") to (if (english) "," else "cycle_script"), (if (english) "Space" else "空白/変換") to "space", "." to ".", "↵" to "enter"))
