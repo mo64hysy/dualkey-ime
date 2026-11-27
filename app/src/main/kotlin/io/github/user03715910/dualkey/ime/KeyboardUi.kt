@@ -140,7 +140,7 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
     private fun button(label: String, action: String, small: Boolean = false, function: Boolean = false,
         description: String = label): TextView = (if (action=="delete") {
         FlickKey(context,listOf("delete","delete_all","","",""),dp(flickDp).toFloat(),feedback,callback,
-            previewEnabled=false,label=label,description=description,showFlickHints=false)
+            previewEnabled=false,label=label,description=description,showFlickHints=false,repeatOnLongPress=true)
     } else TextView(context)).apply {
         text = label; contentDescription=description; gravity = Gravity.CENTER; textSize = if (small) 13f else if (function) 16f else 19f
         decorate(this)
@@ -164,7 +164,6 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
         if (action=="delete") {
             contentDescription=description
             ViewCompat.addAccessibilityAction(this,"カーソルより前を一括削除") { _,_ -> callback("delete_all"); true }
-            setOnLongClickListener { callback("delete_chunk"); true }
         } else {
             setOnClickListener { feedback(this); callback(action) }
             if (action=="paste") setOnLongClickListener { callback("clipboard_history"); true }
@@ -242,7 +241,7 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
                         addView(button(value,value))
                     }
                 }
-                addView(FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除",showFlickHints=false).also(::decorate))
+                addView(FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除",showFlickHints=false,repeatOnLongPress=true).also(::decorate))
             })
             row(listOf((if (english) "日本語" else "abc") to "mode", "記号" to "symbols", (if (english) "," else "カナ/英") to (if (english) "," else "cycle_script"), (if (english) "Space" else "空白/変換") to "space", "." to ".", "↵" to "enter"))
             keys.getChildAt(2).let { it as LinearLayout }.getChildAt(0).contentDescription=when (shift) { 2 -> "Shift：大文字固定"; 1 -> "Shift：次の1文字を大文字"; else -> "Shift：小文字" }
@@ -283,14 +282,14 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
                 if (index==1) {
                     addView(FlickKey(context,listOf("cursor_left","cursor_start","cursor_up_one","cursor_right_one","cursor_down_one"),
-                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"◀",left[index].third,showFlickHints=false).also(::decorate))
+                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"◀",left[index].third,showFlickHints=false,repeatOnLongPress=true).also(::decorate))
                 } else addView(button(left[index].first,left[index].second,function=true,description=left[index].third).apply {
                     if (index==0) isEnabled=!sensitive
                 })
                 group.forEach { values -> addView(FlickKey(context,values,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,longPressValues=if (settings.longPressFlickEnabled) LongPressSymbolMap.forKey(values.first(),settings.longPressCustomEnabled,settings.longPressCustomMap) else null,longPressInput=symbolInput,longPressDurationMs=settings.longPressDuration).also(::decorate)) }
                 if (index==1) {
                     addView(FlickKey(context,listOf("cursor_right","cursor_left_one","cursor_up_one","cursor_end","cursor_down_one"),
-                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"▶",right[index].third,showFlickHints=false).also(::decorate))
+                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"▶",right[index].third,showFlickHints=false,repeatOnLongPress=true).also(::decorate))
                 } else addView(if (index==0) FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate) else button(right[index].first,right[index].second,function=true,description=right[index].third))
             }) }
             keys.addView(LinearLayout(context).apply {
