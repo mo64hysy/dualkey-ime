@@ -31,6 +31,6 @@ internal object EnglishFlickMap {
                 list[direction] = chars[i].toString()
             }
         }
-        return parsed[key]?.toList() ?: defaults[key] ?: listOf(key.toString(), "", "", "", key.uppercase())
+        return parsed[key]?.toList() ?: listOf(key.toString(), "", "", "", "")
     }
 }
