@@ -18,5 +18,18 @@ internal object LongPressSymbolMap {
         "わ" to listOf("0", "", "", "", "")
     )
 
-    fun forKey(key: String): List<String>? = values[key]
+    fun forKey(key: String, customEnabled: Boolean = false, customText: String = ""): List<String>? {
+        if (!customEnabled) return values[key]
+        val parsed = linkedMapOf<String, MutableList<String>>()
+        customText.lineSequence().map { it.trim() }.filter { it.isNotEmpty() && !it.startsWith("#") }.forEach { line ->
+            val name = line.first().toString()
+            val rest = line.drop(1)
+            if (rest.isEmpty()) return@forEach
+            val index = when (rest.first()) { '←' -> 1; '↑' -> 2; '→' -> 3; '↓' -> 4; else -> 0 }
+            val value = if (index == 0) rest else rest.drop(1)
+            if (value.isEmpty()) return@forEach
+            parsed.getOrPut(name) { MutableList(5) { "" } }[index] = value
+        }
+        return parsed[key] ?: values[key]
+    }
 }
