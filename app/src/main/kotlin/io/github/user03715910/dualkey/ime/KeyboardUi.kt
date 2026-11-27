@@ -140,7 +140,7 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
     private fun button(label: String, action: String, small: Boolean = false, function: Boolean = false,
         description: String = label): TextView = (if (action=="delete") {
         FlickKey(context,listOf("delete","delete_all","","",""),dp(flickDp).toFloat(),feedback,callback,
-            previewEnabled=false,label=label,description=description)
+            previewEnabled=false,label=label,description=description,showFlickHints=false)
     } else TextView(context)).apply {
         text = label; contentDescription=description; gravity = Gravity.CENTER; textSize = if (small) 13f else if (function) 16f else 19f
         decorate(this)
@@ -256,7 +256,7 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
                 contentDescription=when (shift) { 2 -> "Shift：大文字固定"; 1 -> "Shift：次の1文字を大文字"; else -> "Shift：小文字" }
             }
             controls(shiftKey, *"zxcvbnm".map { c -> letterKey(c) }.toTypedArray(),
-                FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate))
+                FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除",showFlickHints=false).also(::decorate))
             controls(button("日本語","mode",function=true),
                 button("記号","symbols",function=true,description="記号入力"),
                 button("空白","space",function=true),
