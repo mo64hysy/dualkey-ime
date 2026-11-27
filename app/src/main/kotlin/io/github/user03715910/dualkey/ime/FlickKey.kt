@@ -59,11 +59,11 @@ class FlickKey(context: Context, private val values: List<String>, private val t
     }
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val symbols = longPressValues ?: return
+        val symbols = longPressValues ?: values
         val w = width.toFloat()
         val h = height.toFloat()
         val oldSize = labelPaint.textSize
-        labelPaint.color = currentTextColor
+        labelPaint.color = (currentTextColor and 0x00FFFFFF) or (145 shl 24)
         // Center-output symbol is placed at the upper-left; directional symbols surround the kana.
         val positions = listOf(
             w * .20f to h * .25f,
@@ -72,7 +72,9 @@ class FlickKey(context: Context, private val values: List<String>, private val t
             w * .88f to h * .57f,
             w * .50f to h * .88f
         )
-        symbols.forEachIndexed { index, value ->
+        val visibleIndices = if (longPressValues != null) symbols.indices else listOf(1, 2)
+        visibleIndices.forEach { index ->
+            val value = symbols.getOrNull(index).orEmpty()
             if (value.isNotEmpty()) canvas.drawText(value, positions[index].first, positions[index].second, labelPaint)
         }
         labelPaint.textSize = oldSize
