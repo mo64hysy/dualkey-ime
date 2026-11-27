@@ -1444,6 +1444,16 @@ class DualKeyService : InputMethodService() {
         }
     }
 
+    private fun moveCursorToBoundary(end: Boolean) {
+        val connection=currentInputConnection ?: return
+        invalidateTranslation()
+        commitComposition(); committedTail=null; finishEnglish()
+        val before=connection.getTextBeforeCursor(100000,0)?.length ?: return
+        val after=connection.getTextAfterCursor(100000,0)?.length ?: return
+        val target=if (end) before+after else 0
+        connection.setSelection(target,target)
+    }
+
     private fun insertSymbol(symbol: String, keepCatalog: Boolean=false) {
         val connection=currentInputConnection ?: return
         invalidateTranslation(keepSymbols=keepCatalog)
@@ -1502,6 +1512,13 @@ class DualKeyService : InputMethodService() {
             "delete_all" -> deleteBeforeCursor()
             "cursor_left" -> moveCursor(-1)
             "cursor_right" -> moveCursor(1)
+            "cursor_left_one" -> moveCursor(-1)
+            "cursor_right_one" -> moveCursor(1)
+            "cursor_up_one" -> moveCursor(-1)
+            "cursor_down_one" -> moveCursor(1)
+            "cursor_start" -> moveCursorToBoundary(false)
+            "cursor_end" -> moveCursorToBoundary(true)
+            "delete_flick" -> delete()
             "modify" -> modifyKana()
             "punctuation" -> type(if (composer.text.endsWith("、")) "。" else "、")
             "shift" -> {
