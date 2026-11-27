@@ -400,7 +400,17 @@ class MainActivity : AppCompatActivity() {
         heading("長押しフリック","フリック入力の追加操作と文字割り当てを設定します。")
         section("長押しフリック") {
             toggle("長押しフリックを有効にする",Prefs.longPressFlickEnabled,s.longPressFlickEnabled)
-            slider("長押し時間",Prefs.longPressDuration,s.longPressDuration,100,1000," ms")
+            val durationRow=ui.row(content)
+            durationRow.addView(ui.label("長押し時間",16f),LinearLayout.LayoutParams(0,-2,1f))
+            val durationLabel=ui.label("${s.longPressDuration} ms",15f,bold=true).also { durationRow.addView(it) }
+            content.addView(SeekBar(this).apply {
+                max=90; progress=(s.longPressDuration-100)/10; contentDescription="長押し時間"
+                setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(bar: SeekBar?,value: Int,fromUser: Boolean) { durationLabel.text="${100+value*10} ms" }
+                    override fun onStartTrackingTouch(bar: SeekBar?) {}
+                    override fun onStopTrackingTouch(bar: SeekBar) { save(Prefs.longPressDuration,100+bar.progress*10) }
+                })
+            },LinearLayout.LayoutParams(-1,dp(44)))
             selection("文字割り当て",listOf("デフォルト","カスタム"),if (s.longPressCustomEnabled) 1 else 0) {
                 save(Prefs.longPressCustomEnabled,it==1)
             }
