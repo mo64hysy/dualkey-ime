@@ -274,7 +274,6 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
                     longPressValues=if (settings.longPressFlickEnabled) LongPressSymbolMap.forKey("わ",settings.longPressCustomEnabled,settings.longPressCustomMap) else null,
                     longPressInput=symbolInput,longPressDurationMs=settings.longPressDuration).also(::decorate))
                 addView(FlickKey(context,listOf("、","。","？","！","・"),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive).also(::decorate))
-                addView(FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate))
                 addView(button("↵", "enter",function=true,description="確定・改行"))
             })
         }
