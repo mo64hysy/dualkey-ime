@@ -225,7 +225,7 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
             val middleLeftSymbols = "     ()[]\\\\/"
             fun letterKey(letter: Char, left: String = "", upper: String): View {
                 val lower = letter.toString()
-                val output = listOf(lower, left, upper, "", lower.uppercase())
+                val output = listOf(if (shift > 0) lower.uppercase() else lower, left, upper, "", lower.uppercase())
                 val visible = if (shift > 0) lower.uppercase() else lower
                 return FlickKey(context, output, dp(settings.flickDp).toFloat(), feedback, callback,
                     !sensitive, visible, "英字 $lower").also(::decorate)
