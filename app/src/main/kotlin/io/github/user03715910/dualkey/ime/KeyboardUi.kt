@@ -242,7 +242,7 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
             val groups = listOf(
                 listOf(listOf("あ","い","う","え","お"),listOf("か","き","く","け","こ"),listOf("さ","し","す","せ","そ")),
                 listOf(listOf("た","ち","つ","て","と"),listOf("な","に","ぬ","ね","の"),listOf("は","ひ","ふ","へ","ほ")),
-                listOf(listOf("ま","み","む","め","も"),listOf("や","ゃ","ゆ","ゅ","よ"),listOf("ら","り","る","れ","ろ")))
+                listOf(listOf("ま","み","む","め","も"),listOf("や","（","ゆ","）","よ"),listOf("ら","り","る","れ","ろ")))
             val left=listOf(Triple("カナ/英","cycle_script","表記を切り替え：カタカナ・英語・ひらがな"),Triple("◀","cursor_left","カーソルを左へ"),Triple("記号","symbols","記号入力"))
             val right=listOf(Triple("⌫","delete","削除"),Triple("▶","cursor_right","カーソルを右へ"),Triple("空白","space","空白・変換"))
             groups.forEachIndexed { index,group -> keys.addView(LinearLayout(context).apply {
