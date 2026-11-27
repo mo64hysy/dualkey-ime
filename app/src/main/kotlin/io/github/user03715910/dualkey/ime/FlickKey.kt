@@ -18,7 +18,8 @@ class FlickKey(context: Context, private val values: List<String>, private val t
     private val feedback: (View) -> Unit, private val input: (String) -> Unit, private val previewEnabled: Boolean = true,
     label: String = values[0], description: String = "${values[0]}行",
     private val longPressValues: List<String>? = null,
-    private val longPressInput: ((String) -> Unit)? = null) : AppCompatTextView(context) {
+    private val longPressInput: ((String) -> Unit)? = null,
+    private val longPressDurationMs: Int = 300) : AppCompatTextView(context) {
     private var downX = 0f
     private var downY = 0f
     private var direction = 0
@@ -87,7 +88,7 @@ class FlickKey(context: Context, private val values: List<String>, private val t
                 downX = event.x; downY = event.y; direction = 0; symbolMode = false
                 isPressed = true; feedback(this)
                 parent.requestDisallowInterceptTouchEvent(true)
-                if (longPressValues != null) postDelayed(symbolLongPress, 300L)
+                if (longPressValues != null) postDelayed(symbolLongPress, longPressDurationMs.toLong())
                 else {
                     if (isLongClickable) postDelayed(normalLongPress, ViewConfiguration.getLongPressTimeout().toLong())
                     if (previewEnabled) showPreview(values)
