@@ -17,7 +17,8 @@ import kotlin.math.abs
 class FlickKey(context: Context, private val values: List<String>, private val threshold: Float,
     private val feedback: (View) -> Unit, private val input: (String) -> Unit, private val previewEnabled: Boolean = true,
     label: String = values[0], description: String = "${values[0]}行",
-    private val longPressValues: List<String>? = null) : AppCompatTextView(context) {
+    private val longPressValues: List<String>? = null,
+    private val longPressInput: ((String) -> Unit)? = null) : AppCompatTextView(context) {
     private var downX = 0f
     private var downY = 0f
     private var direction = 0
@@ -109,7 +110,9 @@ class FlickKey(context: Context, private val values: List<String>, private val t
                 val output = if (wasSymbolMode) longPressValues?.getOrNull(releasedDirection) else values.getOrNull(releasedDirection)
                 finishGesture()
                 performClick()
-                output?.takeIf { it.isNotEmpty() }?.let(input)
+                output?.takeIf { it.isNotEmpty() }?.let { value ->
+                    if (wasSymbolMode) (longPressInput ?: input).invoke(value) else input(value)
+                }
                 direction = 0
             }
             MotionEvent.ACTION_CANCEL -> finishGesture()
