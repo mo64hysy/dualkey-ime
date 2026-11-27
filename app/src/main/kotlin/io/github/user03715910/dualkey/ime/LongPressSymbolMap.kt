@@ -13,7 +13,7 @@ internal object LongPressSymbolMap {
         "な" to listOf("5", "{", "", "}", ""),
         "は" to listOf("6", "←", "↑", "→", "↓"),
         "ま" to listOf("7", "", "", "", ""),
-        "や" to listOf("8", "", "", "", ""),
+        "や" to listOf("8", "(", "", ")", ""),
         "ら" to listOf("9", "", "", "", ""),
         "わ" to listOf("0", "", "", "", "")
     )
