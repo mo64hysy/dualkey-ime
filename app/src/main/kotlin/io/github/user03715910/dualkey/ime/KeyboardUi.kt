@@ -222,7 +222,7 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
             val topLeftSymbols = "☆♪→○×÷<>^|"
             val middleSymbols = "@#¥\$%&_-+"
             val bottomSymbols = "\"*'/!?~"
-            val middleLeftSymbols = "     ()[]\\\\/"
+            val middleLeftSymbols = "   ()[]\\/"
             fun letterKey(letter: Char, left: String = "", upper: String): View {
                 val lower = letter.toString()
                 val output = listOf(if (shift > 0) lower.uppercase() else lower, left, upper, "", lower.uppercase())
