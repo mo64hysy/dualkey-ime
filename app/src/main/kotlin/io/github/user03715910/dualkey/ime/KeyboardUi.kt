@@ -208,14 +208,30 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
         fun row(items: List<Pair<String,String>>) { keys.addView(LinearLayout(context).apply { orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false; items.forEach { addView(button(it.first,it.second)) } }) }
         if (symbolPage!=null) {
             buildSymbolKeys(symbolPage)
-        } else if ((english && (!settings.englishFlick || !settings.englishFlickEnabled)) || (!english && settings.japaneseQwerty)) {
-            listOf("qwertyuiop","asdfghjkl").forEach { line -> row(line.map { val s=if (shift>0) it.uppercase() else it.toString(); s to s }) }
+        } else if (english || (!english && settings.japaneseQwerty)) {
+            listOf("qwertyuiop","asdfghjkl").forEach { line ->
+                keys.addView(LinearLayout(context).apply {
+                    orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
+                    line.forEach { ch ->
+                        val lower=ch.toString()
+                        if (english && settings.englishFlickEnabled) {
+                            val mapped=EnglishFlickMap.forKey(ch,settings.englishFlickCustomEnabled,settings.englishFlickCustomMap)
+                            val output=listOf(if (shift>0) lower.uppercase() else lower,mapped[1],mapped[2],mapped[3],mapped[4])
+                            addView(FlickKey(context,output,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,
+                                if (shift>0) lower.uppercase() else lower,"英字 $lower").also(::decorate))
+                        } else {
+                            val shown=if (shift>0) lower.uppercase() else lower
+                            addView(button(shown,shown))
+                        }
+                    }
+                })
+            }
             val label=when (shift) { 2 -> "⇪"; 1 -> "⬆"; else -> "⇧" }
             keys.addView(LinearLayout(context).apply {
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
                 addView(button(label,"shift",function=true))
                 "zxcvbnm".forEach { ch -> val value=if (shift>0) ch.uppercase() else ch.toString(); addView(button(value,value)) }
-                addView(FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate))
+                addView(FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除",showFlickHints=false).also(::decorate))
             })
             row(listOf((if (english) "日本語" else "abc") to "mode", "記号" to "symbols", (if (english) "," else "カナ/英") to (if (english) "," else "cycle_script"), (if (english) "Space" else "空白/変換") to "space", "." to ".", "↵" to "enter"))
             keys.getChildAt(2).let { it as LinearLayout }.getChildAt(0).contentDescription=when (shift) { 2 -> "Shift：大文字固定"; 1 -> "Shift：次の1文字を大文字"; else -> "Shift：小文字" }
@@ -256,14 +272,14 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
                 if (index==1) {
                     addView(FlickKey(context,listOf("cursor_left","cursor_start","cursor_up_one","cursor_right_one","cursor_down_one"),
-                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"◀",left[index].third).also(::decorate))
+                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"◀",left[index].third,showFlickHints=false).also(::decorate))
                 } else addView(button(left[index].first,left[index].second,function=true,description=left[index].third).apply {
                     if (index==0) isEnabled=!sensitive
                 })
                 group.forEach { values -> addView(FlickKey(context,values,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,longPressValues=if (settings.longPressFlickEnabled) LongPressSymbolMap.forKey(values.first(),settings.longPressCustomEnabled,settings.longPressCustomMap) else null,longPressInput=symbolInput,longPressDurationMs=settings.longPressDuration).also(::decorate)) }
                 if (index==1) {
                     addView(FlickKey(context,listOf("cursor_right","cursor_left_one","cursor_up_one","cursor_end","cursor_down_one"),
-                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"▶",right[index].third).also(::decorate))
+                        dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"▶",right[index].third,showFlickHints=false).also(::decorate))
                 } else addView(if (index==0) FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate) else button(right[index].first,right[index].second,function=true,description=right[index].third))
             }) }
             keys.addView(LinearLayout(context).apply {
