@@ -211,7 +211,12 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
         } else if ((english && (!settings.englishFlick || !settings.englishFlickEnabled)) || (!english && settings.japaneseQwerty)) {
             listOf("qwertyuiop","asdfghjkl").forEach { line -> row(line.map { val s=if (shift>0) it.uppercase() else it.toString(); s to s }) }
             val label=when (shift) { 2 -> "⇪"; 1 -> "⬆"; else -> "⇧" }
-            row(listOf(label to "shift")+"zxcvbnm".map { val s=if (shift>0) it.uppercase() else it.toString(); s to s }+("⌫" to "delete"))
+            keys.addView(LinearLayout(context).apply {
+                orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
+                addView(button(label,"shift",function=true))
+                "zxcvbnm".forEach { ch -> val value=if (shift>0) ch.uppercase() else ch.toString(); addView(button(value,value)) }
+                addView(FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate))
+            })
             row(listOf((if (english) "日本語" else "abc") to "mode", "記号" to "symbols", (if (english) "," else "カナ/英") to (if (english) "," else "cycle_script"), (if (english) "Space" else "空白/変換") to "space", "." to ".", "↵" to "enter"))
             keys.getChildAt(2).let { it as LinearLayout }.getChildAt(0).contentDescription=when (shift) { 2 -> "Shift：大文字固定"; 1 -> "Shift：次の1文字を大文字"; else -> "Shift：小文字" }
         } else if (english) {
