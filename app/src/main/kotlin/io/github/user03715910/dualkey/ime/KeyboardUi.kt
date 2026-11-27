@@ -250,16 +250,16 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
             groups.forEachIndexed { index,group -> keys.addView(LinearLayout(context).apply {
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
                 if (index==1) {
-                    addView(FlickKey(context,listOf("cursor_left","cursor_left_one","cursor_up_one","cursor_start","cursor_down_one"),
+                    addView(FlickKey(context,listOf("cursor_left","cursor_start","cursor_up_one","cursor_right_one","cursor_down_one"),
                         dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"◀",left[index].third).also(::decorate))
                 } else addView(button(left[index].first,left[index].second,function=true,description=left[index].third).apply {
                     if (index==0) isEnabled=!sensitive
                 })
-                group.forEach { values -> addView(FlickKey(context,values,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,longPressValues=LongPressSymbolMap.forKey(values.first()),longPressInput=symbolInput).also(::decorate)) }
+                group.forEach { values -> addView(FlickKey(context,values,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,longPressValues=if (settings.longPressFlickEnabled) LongPressSymbolMap.forKey(values.first(),settings.longPressCustomEnabled,settings.longPressCustomMap) else null,longPressInput=symbolInput,longPressDurationMs=settings.longPressDuration).also(::decorate)) }
                 if (index==1) {
                     addView(FlickKey(context,listOf("cursor_right","cursor_left_one","cursor_up_one","cursor_end","cursor_down_one"),
                         dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"▶",right[index].third).also(::decorate))
-                } else addView(button(right[index].first,right[index].second,function=true,description=right[index].third))
+                } else addView(if (index==0) FlickKey(context,listOf("delete","delete_flick","","",""),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,"⌫","削除").also(::decorate) else button(right[index].first,right[index].second,function=true,description=right[index].third))
             }) }
             keys.addView(LinearLayout(context).apply {
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
