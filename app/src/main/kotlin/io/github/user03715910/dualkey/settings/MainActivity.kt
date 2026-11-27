@@ -36,7 +36,7 @@ import kotlinx.coroutines.flow.map
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
-    private enum class Page { HOME, SETTINGS, UPDATES, INPUT, HARDWARE, CONVERSION, TRANSLATION, ABOUT, GUIDE }
+    private enum class Page { HOME, SETTINGS, UPDATES, INPUT, HARDWARE, CONVERSION, TRANSLATION, ABOUT, GUIDE, FLICK }
     private val app get()=application as DualKeyApp
     private lateinit var ui: SettingsUi
     private lateinit var pageContent: LinearLayout
@@ -237,6 +237,7 @@ class MainActivity : AppCompatActivity() {
             Page.TRANSLATION -> translationSettings()
             Page.ABOUT -> about()
             Page.GUIDE -> guide()
+            Page.FLICK -> flickSettings()
         }
         scroll.post { scroll.scrollTo(0,0) }
         renderUpdate(app.updates.state.value); refreshKeyboardStatus(); refreshVisibilityNotificationStatus()
@@ -279,6 +280,7 @@ class MainActivity : AppCompatActivity() {
         listOf(
             Triple("使い方ガイド","初期設定・入力・変換・貼り付けを画像で確認",Page.GUIDE),
             Triple("入力とサイズ","言語・数字行・キーボードの高さ",Page.INPUT),
+            Triple("長押しフリック","長押し時間・文字割り当て・英字フリック",Page.FLICK),
             Triple("物理キーボード","接続時の表示・ショートカット",Page.HARDWARE),
             Triple("変換と辞書","予測候補・ユーザー辞書",Page.CONVERSION),
             Triple("翻訳","日英の切り替え・モデルの管理",Page.TRANSLATION),
@@ -393,6 +395,48 @@ class MainActivity : AppCompatActivity() {
         }
         button("入力を試す",true) { selectPage(Page.HOME); restoreKeyboard() }
     }
+    private fun flickSettings() {
+        val s=app.settings.state.value
+        heading("長押しフリック","フリック入力の追加操作と文字割り当てを設定します。")
+        section("長押しフリック") {
+            toggle("長押しフリックを有効にする",Prefs.longPressFlickEnabled,s.longPressFlickEnabled)
+            slider("長押し時間",Prefs.longPressDuration,s.longPressDuration,100,1000," ms")
+            selection("文字割り当て",listOf("デフォルト","カスタム"),if (s.longPressCustomEnabled) 1 else 0) {
+                save(Prefs.longPressCustomEnabled,it==1)
+            }
+            if (s.longPressCustomEnabled) {
+                text("1行に「キー＋文字」を記入します。← ↑ → ↓ を続けると、その方向の割り当てになります。例：あ1 は中央、あ←# は左フリックです。")
+                val editor=EditText(this).apply {
+                    setText(s.longPressCustomMap.ifBlank { "あ1\nあ←#\nあ↑!\nあ→?\nあ↓@" })
+                    minLines=5; maxLines=12; gravity=Gravity.TOP or Gravity.START
+                    inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                    textSize=14f; setTextColor(ui.ink); background=ui.shape(ui.paper,10,true); setPadding(dp(12),dp(10),dp(12),dp(10))
+                }
+                content.addView(editor,LinearLayout.LayoutParams(-1,dp(180)))
+                button("カスタム文字を保存",true) { save(Prefs.longPressCustomMap,editor.text.toString()); toast("長押しフリックの割り当てを保存しました") }
+            }
+            text("デフォルトに戻すと、標準の記号割り当てを使用します。")
+        }
+        section("英字フリック") {
+            toggle("英字フリックを有効にする",Prefs.englishFlickEnabled,s.englishFlickEnabled)
+            selection("文字割り当て",listOf("デフォルト","カスタム"),if (s.englishFlickCustomEnabled) 1 else 0) {
+                save(Prefs.englishFlickCustomEnabled,it==1)
+            }
+            if (s.englishFlickCustomEnabled) {
+                text("英字を並べ、← ↑ ↓ の後ろに同じ順番で割り当て文字を記入します。")
+                val editor=EditText(this).apply {
+                    setText(s.englishFlickCustomMap.ifBlank { "qwertyuiop↑1234567890\na←@\nqwertyuiopasdfghjklzxcvbnm↓QWERTYUIOPASDFGHJKLZXCVBNM" })
+                    minLines=4; maxLines=10; gravity=Gravity.TOP or Gravity.START
+                    inputType=InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_FLAG_MULTI_LINE or InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS
+                    textSize=14f; setTextColor(ui.ink); background=ui.shape(ui.paper,10,true); setPadding(dp(12),dp(10),dp(12),dp(10))
+                }
+                content.addView(editor,LinearLayout.LayoutParams(-1,dp(180)))
+                button("英字フリックを保存",true) { save(Prefs.englishFlickCustomMap,editor.text.toString()); toast("英字フリックの割り当てを保存しました") }
+            }
+            text("英字フリックは「入力とサイズ」の英語配列が12キーフリックの場合に使用します。")
+        }
+    }
+
     private fun hardwareSettings() {
         val s=app.settings.state.value
         heading("物理キーボード","Bluetooth・USBキーボードの設定です。")
