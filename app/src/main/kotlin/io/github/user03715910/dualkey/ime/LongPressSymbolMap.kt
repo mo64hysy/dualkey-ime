@@ -30,6 +30,6 @@ internal object LongPressSymbolMap {
             if (value.isEmpty()) return@forEach
             parsed.getOrPut(name) { MutableList(5) { "" } }[index] = value
         }
-        return parsed[key] ?: values[key]
+        return parsed[key]
     }
 }
