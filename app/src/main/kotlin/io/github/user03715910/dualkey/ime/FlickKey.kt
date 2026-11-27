@@ -45,6 +45,9 @@ class FlickKey(context: Context, private val values: List<String>, private val t
             postDelayed(this, repeatIntervalMs)
         }
     }
+    private val delayedPreview = Runnable {
+        if (activePointer >= 0 && direction == 0 && !symbolMode && !repeating) showPreview(values)
+    }
     private val normalLongPress = Runnable {
         if (activePointer >= 0 && direction == 0) {
             if (repeatOnLongPress) {
@@ -109,7 +112,7 @@ class FlickKey(context: Context, private val values: List<String>, private val t
                 if (longPressValues != null) postDelayed(symbolLongPress, longPressDurationMs.toLong())
                 else {
                     if (repeatOnLongPress || isLongClickable) postDelayed(normalLongPress, ViewConfiguration.getLongPressTimeout().toLong())
-                    if (previewEnabled) showPreview(values)
+                    if (previewEnabled) postDelayed(delayedPreview, longPressDurationMs.toLong())
                 }
                 updatePreview()
             }
@@ -119,6 +122,7 @@ class FlickKey(context: Context, private val values: List<String>, private val t
                 val x=event.getX(index); val y=event.getY(index)
                 if (!symbolMode && maxOf(abs(x-downX),abs(y-downY))>touchSlop) {
                     if (repeating) { repeating=false; removeCallbacks(repeatAction) }
+                    removeCallbacks(delayedPreview)
                     removeCallbacks(symbolLongPress)
                     if (isLongClickable) removeCallbacks(normalLongPress)
                 }
@@ -171,7 +175,7 @@ class FlickKey(context: Context, private val values: List<String>, private val t
         }
     }
     private fun finishGesture() {
-        removeCallbacks(normalLongPress); removeCallbacks(symbolLongPress); removeCallbacks(repeatAction)
+        removeCallbacks(normalLongPress); removeCallbacks(symbolLongPress); removeCallbacks(repeatAction); removeCallbacks(delayedPreview)
         repeating=false
         popup?.dismiss(); popup=null; preview=null
         isPressed=false; direction=0; activePointer=-1; symbolMode=false
