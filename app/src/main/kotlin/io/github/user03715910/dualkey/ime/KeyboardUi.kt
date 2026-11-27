@@ -250,14 +250,14 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
                 addView(button(left[index].first,left[index].second,function=true,description=left[index].third).apply {
                     if (index==0) isEnabled=!sensitive
                 })
-                group.forEach { values -> addView(FlickKey(context,values,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive).also(::decorate)) }
+                group.forEach { values -> addView(FlickKey(context,values,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,longPressValues=LongPressSymbolMap.forKey(values.first())).also(::decorate)) }
                 addView(button(right[index].first,right[index].second,function=true,description=right[index].third))
             }) }
             keys.addView(LinearLayout(context).apply {
                 orientation=LinearLayout.HORIZONTAL; isBaselineAligned=false
                 addView(button("abc", "mode",function=true,description="英語に切り替え"))
                 addView(button("小゛゜", "modify",function=true,description="濁点・半濁点・小文字"))
-                addView(FlickKey(context,listOf("わ","を","ん","ー","〜"),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive).also(::decorate))
+                addView(FlickKey(context,listOf("わ","を","ん","ー","〜"),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,longPressValues=LongPressSymbolMap.forKey("わ")).also(::decorate))
                 addView(FlickKey(context,listOf("、","。","？","！","・"),dp(settings.flickDp).toFloat(),feedback,callback,!sensitive).also(::decorate))
                 addView(button("↵", "enter",function=true,description="確定・改行"))
             })
