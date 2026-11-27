@@ -19,7 +19,8 @@ class FlickKey(context: Context, private val values: List<String>, private val t
     label: String = values[0], description: String = "${values[0]}行",
     private val longPressValues: List<String>? = null,
     private val longPressInput: ((String) -> Unit)? = null,
-    private val longPressDurationMs: Int = 300) : AppCompatTextView(context) {
+    private val longPressDurationMs: Int = 300,
+    private val showFlickHints: Boolean = true) : AppCompatTextView(context) {
     private var downX = 0f
     private var downY = 0f
     private var direction = 0
@@ -60,6 +61,7 @@ class FlickKey(context: Context, private val values: List<String>, private val t
     }
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (!showFlickHints) return
         val symbols = longPressValues ?: values
         val w = width.toFloat()
         val h = height.toFloat()
