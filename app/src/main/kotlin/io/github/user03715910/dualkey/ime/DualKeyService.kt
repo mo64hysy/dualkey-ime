@@ -1444,6 +1444,12 @@ class DualKeyService : InputMethodService() {
         }
     }
 
+    private fun moveCursorVertical(step: Int) {
+        invalidateTranslation()
+        commitComposition(); committedTail=null; finishEnglish()
+        sendDownUpKeyEvents(if (step < 0) KeyEvent.KEYCODE_DPAD_UP else KeyEvent.KEYCODE_DPAD_DOWN)
+    }
+
     private fun moveCursorToBoundary(end: Boolean) {
         val connection=currentInputConnection ?: return
         invalidateTranslation()
@@ -1514,8 +1520,8 @@ class DualKeyService : InputMethodService() {
             "cursor_right" -> moveCursor(1)
             "cursor_left_one" -> moveCursor(-1)
             "cursor_right_one" -> moveCursor(1)
-            "cursor_up_one" -> moveCursor(-1)
-            "cursor_down_one" -> moveCursor(1)
+            "cursor_up_one" -> moveCursorVertical(-1)
+            "cursor_down_one" -> moveCursorVertical(1)
             "cursor_start" -> moveCursorToBoundary(false)
             "cursor_end" -> moveCursorToBoundary(true)
             "delete_flick" -> delete()
