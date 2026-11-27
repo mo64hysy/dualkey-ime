@@ -215,28 +215,37 @@ class KeyboardUi(private val context: Context, private val callback: (String) ->
             row(listOf((if (english) "日本語" else "abc") to "mode", "記号" to "symbols", (if (english) "," else "カナ/英") to (if (english) "," else "cycle_script"), (if (english) "Space" else "空白/変換") to "space", "." to ".", "↵" to "enter"))
             keys.getChildAt(2).let { it as LinearLayout }.getChildAt(0).contentDescription=when (shift) { 2 -> "Shift：大文字固定"; 1 -> "Shift：次の1文字を大文字"; else -> "Shift：小文字" }
         } else if (english) {
-            fun flick(values: List<String>,label: String,description: String) =
-                FlickKey(context,values,dp(settings.flickDp).toFloat(),feedback,callback,!sensitive,label,description).also(::decorate)
-            fun alphabet(group: String): View {
-                val label=if (shift>0) group.uppercase() else group
-                return flick(label.map(Char::toString)+List(5-label.length){""},label,"${label[0]}行")
-            }
             fun controls(vararg cells: View) {
                 keys.addView(LinearLayout(context).apply { isBaselineAligned=false; cells.forEach { addView(it) } })
             }
-            controls(flick(listOf("'", "\"", "`", ":", ";"),"'\"", "引用符"),
-                flick(listOf("@","_","-","+","&"),"@_-","アットマーク"),alphabet("abc"),alphabet("def"),
-                button("⌫","delete",function=true,description="削除"))
-            controls(button("◀","cursor_left",function=true,description="カーソルを左へ"),
-                alphabet("ghi"),alphabet("jkl"),alphabet("mno"),button("▶","cursor_right",function=true,description="カーソルを右へ"))
-            controls(button("記号","symbols",function=true,description="記号入力"),
-                alphabet("pqrs"),alphabet("tuv"),alphabet("wxyz"),button("空白","space",function=true))
+            val upperSymbols = "1234567890"
+            val topLeftSymbols = "☆♪→○×÷<>^|"
+            val middleSymbols = "@#¥\$%&_-+"
+            val bottomSymbols = "\"*'/!?~"
+            val middleLeftSymbols = "     ()[]\\\\/"
+            fun letterKey(letter: Char, left: String = "", upper: String): View {
+                val lower = letter.toString()
+                val output = listOf(lower, left, upper, "", lower.uppercase())
+                val visible = if (shift > 0) lower.uppercase() else lower
+                return FlickKey(context, output, dp(settings.flickDp).toFloat(), feedback, callback,
+                    !sensitive, visible, "英字 $lower").also(::decorate)
+            }
+            fun letterRow(chars: String, upper: String, left: String = "") {
+                controls(*chars.mapIndexed { index, c ->
+                    letterKey(c, left.getOrNull(index)?.toString() ?: "", upper[index].toString())
+                }.toTypedArray())
+            }
+            letterRow("qwertyuiop", upperSymbols, topLeftSymbols)
+            letterRow("asdfghjkl", middleSymbols, middleLeftSymbols)
             val shiftKey=button(when (shift) { 2 -> "A/A ⇪"; 1 -> "A/a"; else -> "a/A" },"shift",function=true).apply {
                 contentDescription=when (shift) { 2 -> "Shift：大文字固定"; 1 -> "Shift：次の1文字を大文字"; else -> "Shift：小文字" }
             }
-            controls(button("日本語","mode",function=true),shiftKey,
-                flick(listOf("/","(",")","[","]"),"/( )","スラッシュ・括弧"),
-                flick(listOf(".",",","?","!","…"),".,!?","句読点"),
+            controls(shiftKey, *"zxcvbnm".mapIndexed { index, c ->
+                letterKey(c, "", bottomSymbols[index].toString())
+            }.toTypedArray(), button("⌫","delete",function=true,description="削除"))
+            controls(button("日本語","mode",function=true),
+                button("記号","symbols",function=true,description="記号入力"),
+                button("空白","space",function=true),
                 button("↵","enter",function=true,description="確定・改行"))
         } else {
             val groups = listOf(
