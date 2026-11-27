@@ -197,7 +197,7 @@ class DualKeyService : InputMethodService() {
         scope.launch { ImeControl.requests.collect { request -> if (request!=null && hasEditor()) applyDisplayRequest(request) } }
         scope.launch { app.hardwareKeyboardConnected.collect { if (it!=visibility.connected) hardwareChanged() } }
     }
-    override fun onCreateInputView(): View = KeyboardUi(this,::onScreenKey,::feedback).also { ui=it; it.dictionaryStatus(app.japaneseDictionary.message.value); rebuild(); refreshCandidates(); updateNavigationAppearance() }.root
+    override fun onCreateInputView(): View = KeyboardUi(this,::onScreenKey,::feedback,{ symbol -> insertSymbol(symbol) }).also { ui=it; it.dictionaryStatus(app.japaneseDictionary.message.value); rebuild(); refreshCandidates(); updateNavigationAppearance() }.root
     override fun onWindowShown() {
         super.onWindowShown(); windowShown=true
         lifecycleState("shown")
