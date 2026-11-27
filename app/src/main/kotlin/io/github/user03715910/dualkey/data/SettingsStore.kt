@@ -54,6 +54,13 @@ object Prefs {
     val recentScreenshots = booleanPreferencesKey("recent_screenshots")
     val clipboardMediaMinutes = intPreferencesKey("clipboard_media_minutes")
     val clipboardLimit = intPreferencesKey("clipboard_history_limit")
+    val longPressFlickEnabled = booleanPreferencesKey("long_press_flick_enabled")
+    val longPressDuration = intPreferencesKey("long_press_duration_ms")
+    val longPressCustomEnabled = booleanPreferencesKey("long_press_custom_enabled")
+    val longPressCustomMap = stringPreferencesKey("long_press_custom_map")
+    val englishFlickEnabled = booleanPreferencesKey("english_flick_enabled")
+    val englishFlickCustomEnabled = booleanPreferencesKey("english_flick_custom_enabled")
+    val englishFlickCustomMap = stringPreferencesKey("english_flick_custom_map")
 }
 
 data class Settings(val p: Preferences = emptyPreferences()) {
@@ -66,6 +73,13 @@ data class Settings(val p: Preferences = emptyPreferences()) {
     val recentScreenshots get() = p[Prefs.recentScreenshots] ?: false
     val clipboardMediaMinutes get() = (p[Prefs.clipboardMediaMinutes] ?: 10).coerceIn(5,60)
     val clipboardLimit get() = (p[Prefs.clipboardLimit] ?: 20).coerceIn(5,100)
+    val longPressFlickEnabled get() = p[Prefs.longPressFlickEnabled] ?: true
+    val longPressDuration get() = (p[Prefs.longPressDuration] ?: 300).coerceIn(100,1000)
+    val longPressCustomEnabled get() = p[Prefs.longPressCustomEnabled] ?: false
+    val longPressCustomMap get() = p[Prefs.longPressCustomMap] ?: ""
+    val englishFlickEnabled get() = p[Prefs.englishFlickEnabled] ?: true
+    val englishFlickCustomEnabled get() = p[Prefs.englishFlickCustomEnabled] ?: false
+    val englishFlickCustomMap get() = p[Prefs.englishFlickCustomMap] ?: ""
     val numberRow get() = p[Prefs.numberRow] ?: true
     val flickDp get() = (p[Prefs.flickDp] ?: 24).coerceIn(8,64)
     val keyHeight get() = (p[Prefs.keyHeight] ?: 40).coerceIn(32,80)
